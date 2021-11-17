@@ -1,6 +1,7 @@
 package com.belous.crmdemo.dao;
 
 import com.belous.crmdemo.entity.Customer;
+import com.belous.crmdemo.util.SortUtils;
 import org.hibernate.Session;
 import org.hibernate.SessionFactory;
 import org.hibernate.query.Query;
@@ -17,14 +18,30 @@ public class CustomerDAOImpl implements CustomerDAO {
     private SessionFactory sessionFactory;
 
     @Override
-    public List<Customer> getCustomers() {
+    public List<Customer> getCustomers(int theSortField) {
 
         // get the current hibernate session
         Session currentSession = sessionFactory.getCurrentSession();
 
-        // create a query ... sort by last nam
+        // determine sort field
+        String theSortName = null;
+
+        switch (theSortField) {
+            case SortUtils.FIRST_NAME:
+                theSortName = "firstName";
+                break;
+            case SortUtils.EMAIL:
+                theSortName = "email";
+                break;
+            default:
+                // if nothing matches the default to sort by lastName
+                theSortName = "lastName";
+        }
+
+        // create a query
+        String queryString = "from Customer order by " + theSortName;
         Query<Customer> theQuery =
-                currentSession.createQuery("from Customer order by lastName", Customer.class);
+                currentSession.createQuery(queryString, Customer.class);
 
         // execute query and return the results
         return theQuery.getResultList();
