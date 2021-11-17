@@ -2,6 +2,7 @@ package com.belous.crmdemo.controller;
 
 import com.belous.crmdemo.entity.Customer;
 import com.belous.crmdemo.service.CustomerService;
+import com.belous.crmdemo.util.SortUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
@@ -18,10 +19,20 @@ public class CustomerController {
     private CustomerService customerService;
 
     @GetMapping("/list")
-    public String listCustomers(Model theModel) {
+    public String listCustomers(Model theModel, @RequestParam(required = false) String sort) {
 
         // get customers from the service
-        List<Customer> customers = customerService.getCustomers();
+        List<Customer> customers = null;
+
+        // check for sort field
+        if (sort != null) {
+            int theSortField = Integer.parseInt(sort);
+            customers = customerService.getCustomers(theSortField);
+        }
+        else {
+            // no sort field provided ... default to sorting by last name
+            customers = customerService.getCustomers(SortUtils.LAST_NAME);
+        }
 
         // add the customers to the model of SpringMVC
         theModel.addAttribute("customers", customers);
