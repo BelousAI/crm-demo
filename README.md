@@ -2,7 +2,7 @@ Java Project: CRM-demo
 ====================================================================
 
 Используемые технологии /инструменты / фреймворки:  
-Servlet API/ JSP/ Spring MVC/ Hibernate API/ MySQL/ Maven
+Servlet API/ JSP/ Spring MVC/ Spring AOP/ Hibernate API/ MySQL/ Maven
 
 #### Функциональность приложения:
 - создание новых клиентов;
