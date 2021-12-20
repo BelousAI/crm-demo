@@ -4,7 +4,7 @@ import com.belous.crmdemo.entity.Customer;
 
 import java.util.List;
 
-public interface CustomerDAO {
+public interface CustomerDao {
 
     public List<Customer> getCustomers(int theSortField);
 

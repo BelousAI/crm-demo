@@ -145,15 +145,39 @@ public class DemoAppConfig implements WebMvcConfigurer {
     }
 
     @Bean
+    public LocalSessionFactoryBean securitySessionFactory() {
+
+        // create security session factory
+        LocalSessionFactoryBean securitySessionFactory = new LocalSessionFactoryBean();
+
+        // set the properties
+        securitySessionFactory.setDataSource(securityDataSource());
+        securitySessionFactory.setPackagesToScan(env.getProperty("hibernate.packagesToScan"));
+        securitySessionFactory.setHibernateProperties(getHibernateProperties());
+
+        return securitySessionFactory;
+    }
+
+    @Bean
     @Autowired
     public HibernateTransactionManager transactionManager(SessionFactory sessionFactory) {
 
         // setup transaction manager based on session factory
-        HibernateTransactionManager tsManager = new HibernateTransactionManager();
+        HibernateTransactionManager txManager = new HibernateTransactionManager();
+        txManager.setSessionFactory(sessionFactory);
 
-        tsManager.setSessionFactory(sessionFactory);
+        return txManager;
+    }
 
-        return tsManager;
+    @Bean
+    @Autowired
+    public HibernateTransactionManager securityTransactionManager(SessionFactory securitySessionFactory) {
+
+        // setup security transaction manager based on security session factory
+        HibernateTransactionManager securityTxManager = new HibernateTransactionManager();
+        securityTxManager.setSessionFactory(securitySessionFactory);
+
+        return securityTxManager;
     }
 
     @Override

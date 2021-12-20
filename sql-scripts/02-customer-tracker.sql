@@ -13,19 +13,16 @@ CREATE TABLE `customer` (
   `last_name` varchar(45) DEFAULT NULL,
   `email` varchar(45) DEFAULT NULL,
   PRIMARY KEY (`id`)
-) ENGINE=InnoDB AUTO_INCREMENT=6 DEFAULT CHARSET=latin1;
+) ENGINE=InnoDB AUTO_INCREMENT=1 DEFAULT CHARSET=latin1;
 
 --
 -- Dumping data for table `customer`
 --
 
-LOCK TABLES `customer` WRITE;
-
-INSERT INTO `customer` VALUES 
-	(1,'David','Adams','david@gmail.com'),
-	(2,'John','Doe','john@gmail.com'),
-	(3,'Ajay','Rao','ajay@gmail.com'),
-	(4,'Mary','Public','mary@gmail.com'),
-	(5,'Maxwell','Dixon','max@gmail.com');
-
-UNLOCK TABLES;
+INSERT INTO `customer` (first_name, last_name, email)
+VALUES
+    ('David','Adams','david@gmail.com'),
+	('John','Doe','john@gmail.com'),
+	('Ajay','Rao','ajay@gmail.com'),
+	('Mary','Public','mary@gmail.com'),
+	('Maxwell','Dixon','max@gmail.com');
