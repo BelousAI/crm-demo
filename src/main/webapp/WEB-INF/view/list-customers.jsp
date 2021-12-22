@@ -1,5 +1,6 @@
 <%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core" %>
 <%@ taglib prefix="form" uri="http://www.springframework.org/tags/form" %>
+<%@ taglib prefix="security" uri="http://www.springframework.org/security/tags" %>
 <%@ page import="com.belous.crmdemo.util.SortUtils" %>
 
 <!DOCTYPE html>
@@ -26,11 +27,20 @@
 
         <div id="content">
 
-            <!-- put new button: Add Customer -->
-            <input type="button" value="Add Customer"
-                   onclick="window.location.href = 'showFormForAdd'; return false;"
-                   class="add-button"
-            />
+            <p>
+                User: <security:authentication property="principal.username" />,
+                Role(s): <security:authentication property="principal.authorities" />
+            </p>
+
+            <security:authorize access="hasAnyRole('MANAGER', 'ADMIN')" >
+
+                <!-- put new button: Add Customer -->
+                <input type="button" value="Add Customer"
+                       onclick="window.location.href = 'showFormForAdd'; return false;"
+                       class="add-button"
+                />
+
+            </security:authorize>
 
             <!-- add a search box -->
             <form:form action="search" method="GET" >
@@ -60,7 +70,13 @@
                     <th><a href="${sortLinkFirstName}">First Name</a></th>
                     <th><a href="${sortLinkLastName}">Last Name</a></th>
                     <th><a href="${sortLinkEmail}">Email</a></th>
-                    <th>Action</th>
+
+                    <%-- Only show "Action" column for managers or admin --%>
+                    <security:authorize access="hasAnyRole('MANAGER', 'ADMIN')">
+
+                        <th>Action</th>
+
+                    </security:authorize>
                 </tr>
 
                 <!-- loop over and print our customers -->
@@ -81,11 +97,22 @@
                         <td>${tempCustomer.lastName}</td>
                         <td>${tempCustomer.email}</td>
 
-                        <td>
-                            <a href="${updateLink}">Update</a>
-                            |
-                            <a href="${deleteLink}">Delete</a>
-                        </td>
+                        <security:authorize access="hasAnyRole('MANAGER', 'ADMIN')">
+
+                            <td>
+                                <security:authorize access="hasAnyRole('MANAGER', 'ADMIN')">
+                                    <!-- display the update link -->
+                                    <a href="${updateLink}">Update</a>
+                                </security:authorize>
+
+                                <security:authorize access="hasAnyRole('ADMIN')">
+                                    <a href="${deleteLink}"
+                                       onclick="if (!(confirm('Are you sure you want to delete this customer?')))
+                                           return false">Delete</a>
+                                </security:authorize>
+                            </td>
+
+                        </security:authorize>
                     </tr>
 
                 </c:forEach>
@@ -95,6 +122,15 @@
         </div>
 
     </div>
+
+    <p></p>
+
+    <!-- Add a logout button -->
+    <form:form action="${pageContext.request.contextPath}/logout" method="POST">
+
+        <input type="submit" value="Logout" class="add-button" />
+
+    </form:form>
 
 </body>
 </html>

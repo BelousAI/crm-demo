@@ -20,7 +20,8 @@ public class Customer {
     @Column(name = "email")
     private String email;
 
-    public Customer() {}
+    public Customer() {
+    }
 
     public int getId() {
         return id;

@@ -24,7 +24,7 @@ import java.util.logging.Logger;
 @EnableTransactionManagement
 @EnableAspectJAutoProxy
 @ComponentScan("com.belous.crmdemo")
-@PropertySource({"classpath:persistence-mysql.properties"})
+@PropertySource({"classpath:persistence-mysql.properties", "classpath:security-persistence-mysql.properties"})
 public class DemoAppConfig implements WebMvcConfigurer {
 
     // set up variable to hold the properties
@@ -46,35 +46,68 @@ public class DemoAppConfig implements WebMvcConfigurer {
         return viewResolver;
     }
 
-    // define a bean for our datasource
+    // define a bean for our data source
+    @Bean
     public DataSource myDataSource() {
 
         // create connection pool
-        ComboPooledDataSource dataSource = new ComboPooledDataSource();
+        ComboPooledDataSource myDataSource = new ComboPooledDataSource();
 
         // set up the jdbc driver class
         try {
-            dataSource.setDriverClass(env.getProperty("jdbc.driver"));
+            myDataSource.setDriverClass(env.getProperty("jdbc.driver"));
         } catch (PropertyVetoException exc) {
             throw new RuntimeException(exc);
         }
 
-        // for sanity's sake, let's log url and user ... just to make sure we are reading the data
+        // log url and user ... just to make sure we are reading the data
         myLogger.info(">>> jdbc.url=" + env.getProperty("jdbc.url"));
         myLogger.info(">>> jdbc.user=" + env.getProperty("jdbc.user"));
 
         // set database connection props
-        dataSource.setJdbcUrl(env.getProperty("jdbc.url"));
-        dataSource.setUser(env.getProperty("jdbc.user"));
-        dataSource.setPassword(env.getProperty("jdbc.password"));
+        myDataSource.setJdbcUrl(env.getProperty("jdbc.url"));
+        myDataSource.setUser(env.getProperty("jdbc.user"));
+        myDataSource.setPassword(env.getProperty("jdbc.password"));
 
         // set connection pool props
-        dataSource.setInitialPoolSize(getIntProp("connection.pool.initialPoolSize"));
-        dataSource.setMinPoolSize(getIntProp("connection.pool.minPoolSize"));
-        dataSource.setMaxPoolSize(getIntProp("connection.pool.maxPoolSize"));
-        dataSource.setMaxIdleTime(getIntProp("connection.pool.maxIdleTime"));
+        myDataSource.setInitialPoolSize(getIntProp("connection.pool.initialPoolSize"));
+        myDataSource.setMinPoolSize(getIntProp("connection.pool.minPoolSize"));
+        myDataSource.setMaxPoolSize(getIntProp("connection.pool.maxPoolSize"));
+        myDataSource.setMaxIdleTime(getIntProp("connection.pool.maxIdleTime"));
 
-        return dataSource;
+        return myDataSource;
+    }
+
+    // define a bean for security data source
+    @Bean
+    public DataSource securityDataSource() {
+
+        // create connection pool
+        ComboPooledDataSource securityDataSource = new ComboPooledDataSource();
+
+        // set up the jdbc driver class
+        try {
+            securityDataSource.setDriverClass(env.getProperty("security.jdbc.driver"));
+        } catch (PropertyVetoException exc) {
+            throw new RuntimeException(exc);
+        }
+
+        // log url and user ... just to make sure we are reading the data
+        myLogger.info(">>> security.jdbc.url=" + env.getProperty("security.jdbc.url"));
+        myLogger.info(">>> security.jdbc.user=" + env.getProperty("security.jdbc.user"));
+
+        // set database connection props
+        securityDataSource.setJdbcUrl(env.getProperty("security.jdbc.url"));
+        securityDataSource.setUser(env.getProperty("security.jdbc.user"));
+        securityDataSource.setPassword(env.getProperty("security.jdbc.password"));
+
+        // set connection pool props
+        securityDataSource.setInitialPoolSize(getIntProp("security.connection.pool.initialPoolSize"));
+        securityDataSource.setMinPoolSize(getIntProp("security.connection.pool.minPoolSize"));
+        securityDataSource.setMaxPoolSize(getIntProp("security.connection.pool.maxPoolSize"));
+        securityDataSource.setMaxIdleTime(getIntProp("security.connection.pool.maxIdleTime"));
+
+        return securityDataSource;
     }
 
     // need a helper method
@@ -112,15 +145,39 @@ public class DemoAppConfig implements WebMvcConfigurer {
     }
 
     @Bean
+    public LocalSessionFactoryBean securitySessionFactory() {
+
+        // create security session factory
+        LocalSessionFactoryBean securitySessionFactory = new LocalSessionFactoryBean();
+
+        // set the properties
+        securitySessionFactory.setDataSource(securityDataSource());
+        securitySessionFactory.setPackagesToScan(env.getProperty("hibernate.packagesToScan"));
+        securitySessionFactory.setHibernateProperties(getHibernateProperties());
+
+        return securitySessionFactory;
+    }
+
+    @Bean
     @Autowired
     public HibernateTransactionManager transactionManager(SessionFactory sessionFactory) {
 
         // setup transaction manager based on session factory
-        HibernateTransactionManager tsManager = new HibernateTransactionManager();
+        HibernateTransactionManager txManager = new HibernateTransactionManager();
+        txManager.setSessionFactory(sessionFactory);
 
-        tsManager.setSessionFactory(sessionFactory);
+        return txManager;
+    }
 
-        return tsManager;
+    @Bean
+    @Autowired
+    public HibernateTransactionManager securityTransactionManager(SessionFactory securitySessionFactory) {
+
+        // setup security transaction manager based on security session factory
+        HibernateTransactionManager securityTxManager = new HibernateTransactionManager();
+        securityTxManager.setSessionFactory(securitySessionFactory);
+
+        return securityTxManager;
     }
 
     @Override
